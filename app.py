@@ -109,6 +109,11 @@ if selected == "Ya tengo una cuenta":
             }, json={
                 'email' : email,'password' : password
             })
+            if response_login.status_code == 401:
+                st.warning("Contraseña incorrecta", icon="🚨")
+            elif response_login.status_code == 404:
+                st.warning(body="No existen usuarios con el correo ingresado", icon="🚨")
             print(response_login.status_code)
             if not response_login.ok:
                 print(response_login.json())
+                
