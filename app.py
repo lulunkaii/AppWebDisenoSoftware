@@ -8,8 +8,16 @@ import re
 from streamlit_option_menu import option_menu
 from streamlit_lottie import st_lottie
 
-
 st.set_page_config(page_title="My webpage", page_icon=":package:", layout="centered")
+
+
+#To-do 
+    #Incluir posibles códigos de salida (error o success) 201, 400 y 409  para registro y login de usuario
+    #Junto a esto, un recurso gráfico que notifique al usuario de estos errores o aciertos
+    #Guiar despues del exito de login a la web de envios
+    #Vincular la pagina a GitHub para dejar de hostear remoto
+    #Implementar acceso a la plataforma según sea admin o usuario
+
 
 # Loading assets
 def load_lottieurl(url):
@@ -43,7 +51,7 @@ if selected == "Home":
         left_column, right_column = st.columns(2)
         with left_column: 
             st.title("¿Quiénes somos?")
-            st.write("Somos una empresa dedicada al servicio de envío de sobres y encomiendas.")
+            st.write("Somos una empresa dedicada al servicio de envío de sobres y encomiendas. Crea una cuenta o inicia sesión para concretar un envío. ")
         with right_column:
             st_lottie(lottie_coding, height=300, key = "delivery")
 
@@ -53,22 +61,22 @@ if selected == "Crea tu cuenta":
     with st.form(key='signup', clear_on_submit=True):
         st.subheader(':blue[Ingresa tus datos de envío]')
         st.write(':blue[Los datos marcados con (*) son obligatorios.]')
-        rut = st.text_input('RUT', placeholder='Ex: 12345678-9 (*)', )
-        first_name = st.text_input('Primer nombre', placeholder='Ingresa tu primer nombre (*)')
+        rut = st.text_input('RUT', placeholder='Ex: 12345678-9 *', )
+        first_name = st.text_input('Primer nombre', placeholder='Ingresa tu primer nombre *')
         second_name = st.text_input('Segundo nombre', placeholder='Ingresa tu segundo nombre')
-        first_last_name = st.text_input('Primer apellido', placeholder='Ingresa tu primer apellido (*)')
-        second_last_name = st.text_input('Primer apellido', placeholder='Ingresa tu segundo apellido (*)')
-        email = st.text_input('Email', placeholder='Ingresa tu correo electrónico (*)')
-        phone = st.text_input('Número de contacto', placeholder='Ex: 912345678 (*)')
-        adress_region = st.text_input('Región', placeholder='Ex: Biobío (*)')
-        adress_city = st.text_input('Ciudad', placeholder='Ex: Concepción (*)')
-        adress_street = st.text_input('Calle', placeholder='Ex: Tucapel (*)')
-        adress_number = st.text_input('Número de dirección', placeholder='Ex: 123 (*)')
+        first_last_name = st.text_input('Primer apellido', placeholder='Ingresa tu primer apellido *')
+        second_last_name = st.text_input('Primer apellido', placeholder='Ingresa tu segundo apellido *')
+        email = st.text_input('Email', placeholder='Ingresa tu correo electrónico *')
+        phone = st.text_input('Número de contacto', placeholder='Ex: 912345678 *')
+        adress_region = st.text_input('Región', placeholder='Ex: Biobío *')
+        adress_city = st.text_input('Ciudad', placeholder='Ex: Concepción *')
+        adress_street = st.text_input('Calle', placeholder='Ex: Tucapel *')
+        adress_number = st.text_input('Número de dirección', placeholder='Ex: 123 *')
         adress_secondary = st.text_input('Dirección secundaria', placeholder='Dirección secundaria en caso de ausencia')
-        password = st.text_input("Contraseña", placeholder="Escribe tu contraseña (*)", type="password")
+        password = st.text_input("Contraseña", placeholder="Escribe tu contraseña (mín. 8 caracteres) *", type="password")
 
-        b = st.form_submit_button('Registrarse')
-        if b:
+        b_signup = st.form_submit_button('Registrarse')
+        if b_signup:
             password = st.session_state["password"]
             response = requests.post('http://localhost:3000/api/v1/users', headers={
                 "Content-Type": "application/json"
@@ -89,24 +97,18 @@ if selected == "Crea tu cuenta":
 if selected == "Ya tengo una cuenta":
     # User Authentication
     st.title("Inicia sesión")
-    names = ["Peter Parker", "Rebecca Miller"]
-    emails = ["pparker@123.com", "rmiller@123.com"]
 
-    # load hashed passwords
-    file_path = Path(__file__).parent / "hashed_pw.pkl"
-    with file_path.open("rb") as file:
-        hashed_passwords = pickle.load(file)
+    with st.form(key='login', clear_on_submit=True):
+        email = st.text_input('Email', placeholder='Ingresa tu correo electrónico')
+        password = st.text_input("Contraseña", placeholder="Escribe tu contraseña", type="password")
+        b_login = st.form_submit_button('Iniciar sesión')
 
-    authenticator = stauth.Authenticate(names, emails, hashed_passwords,
-        "sales_dashboard", "abcdef", cookie_expiry_days=0)
-
-    name, authentication_status, username = authenticator.login("Login", "main")
-
-    if authentication_status == False:  
-        st.error("Username/password is incorrect")
-
-    if authentication_status == None:   
-        st.warning("Please enter your username and password")
-
-    if authentication_status:
-        st.title("Entraste")
+        if b_login:
+            response_login = requests.post('http://localhost:3000/api/v1/users/login', headers={
+                "Content-Type": "application/json"
+            }, json={
+                'email' : email,'password' : password
+            })
+            print(response_login.status_code)
+            if not response_login.ok:
+                print(response_login.json())
